@@ -62,7 +62,7 @@ if uploaded_file is not None:
 
 link = st.sidebar.text_input(label='Вставьте сюда ссылку на картинку зерна')
 if link is not '':
-    image = Image.open(urllib.request.urlopen(link))
+    image = Image.open(urllib.request.urlopen(link)).convert("RGB")
     pred, img, sec = get_prediction(image)
     st.session_state.predictions.append((pred.lower(), img))
     for pred, img in st.session_state.predictions:

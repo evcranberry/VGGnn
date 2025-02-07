@@ -121,7 +121,7 @@ if uploaded_files:
         st.markdown(
             f"""
             <div style="text-align: center; font-size: 24px; font-family: sans-serif;">
-                <p>Это {idx[predicted_idxs[i].item()]}</p>
+                <p>Это {idx[predicted_idxs[i].item()].lower()}</p>
             </div>
             """,
             unsafe_allow_html=True
