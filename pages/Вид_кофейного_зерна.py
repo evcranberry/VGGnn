@@ -42,7 +42,7 @@ def get_prediction(img) -> int:
         output = model(img.unsqueeze(0)) # Получаем вывод модели
         end = time.time()
         pred_class = torch.argmax(output, dim=1).item() # Получаем индекс класса с наибольшей вероятностью
-    return coffee_types[pred_class], img_display, end-start, output
+    return coffee_types[pred_class], img_display, end-start
 
 if 'predictions' not in st.session_state:
     st.session_state.predictions = []
@@ -54,20 +54,20 @@ st.image(ex_image)
 uploaded_file = st.sidebar.file_uploader(label='Загружать фото сюда:', type=['jpeg', 'png'])
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
-    pred, img, sec, output = get_prediction(image)
+    pred, img, sec = get_prediction(image)
     st.session_state.predictions.append((pred.lower(), img))
     for pred, img in st.session_state.predictions:
-        st.write(f'''Тип Вашего кофейного зерна: _{pred}, {output}_  
+        st.write(f'''Тип Вашего кофейного зерна: _{pred}_  
 Время выполнения предсказания: __{sec:.4f} секунды__''')
         st.image(img)
 
 link = st.sidebar.text_input(label='Вставьте сюда ссылку на картинку зерна')
 if link is not '':
     image = Image.open(urllib.request.urlopen(link)).convert("RGB")
-    pred, img, sec, output = get_prediction(image)
+    pred, img, sec = get_prediction(image)
     st.session_state.predictions.append((pred.lower(), img))
     for pred, img in st.session_state.predictions:
-        st.write(f'''Тип Вашего кофейного зерна: _{pred}, {output}_  
+        st.write(f'''Тип Вашего кофейного зерна: _{pred}_  
 Время выполнения предсказания: __{sec:.4f} секунды__''')
         st.image(img)
 
