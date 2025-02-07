@@ -19,11 +19,12 @@ st.logo('./images/icons/cup.jpg', icon_image='./images/icons/bean.jpeg', size='l
 from torchvision.models import vgg19_bn
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-VGG19_BN_Weights_custom = torch.load('models/weights_vgg.pt', map_location=torch.device(DEVICE))
-model = vgg19_bn(weights=VGG19_BN_Weights_custom)
-model.to(DEVICE)
 
+
+model = vgg19_bn()
 model.classifier[6] = nn.Linear(4096, 4)
+model.load_state_dict(torch.load('models/weights_vgg.pt', map_location=torch.device(DEVICE)))
+model.to(DEVICE)
 model.eval()
 coffee_types = {0: 'Тёмный', 1: 'Зеленый', 2: 'Светлый', 3: 'Средний'}
 trnsfrms = T.Compose(
@@ -37,11 +38,11 @@ def get_prediction(img) -> int:
     img = trnsfrms(img)  # Применяем трансформации
     img_display = torch.permute(img, (1, 2, 0)).numpy()
     start = time.time()
-    with torch.inference_mode():
-        output = model(img.unsqueeze(0).to(DEVICE))  # Получаем вывод модели
+    with torch.no_grad():
+        output = model(img.unsqueeze(0)) # Получаем вывод модели
         end = time.time()
-        pred_class = torch.argmax(output, dim=1).item()  # Получаем индекс класса с наибольшей вероятностью
-    return coffee_types[pred_class], img_display, end-start
+        pred_class = torch.argmax(output, dim=1).item() # Получаем индекс класса с наибольшей вероятностью
+    return coffee_types[pred_class], img_display, end-start, output
 
 if 'predictions' not in st.session_state:
     st.session_state.predictions = []
@@ -53,20 +54,20 @@ st.image(ex_image)
 uploaded_file = st.sidebar.file_uploader(label='Загружать фото сюда:', type=['jpeg', 'png'])
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
-    pred, img, sec = get_prediction(image)
+    pred, img, sec, output = get_prediction(image)
     st.session_state.predictions.append((pred.lower(), img))
     for pred, img in st.session_state.predictions:
-        st.write(f'''Тип Вашего кофейного зерна: _{pred}_  
+        st.write(f'''Тип Вашего кофейного зерна: _{pred}, {output}_  
 Время выполнения предсказания: __{sec:.4f} секунды__''')
         st.image(img)
 
 link = st.sidebar.text_input(label='Вставьте сюда ссылку на картинку зерна')
 if link is not '':
     image = Image.open(urllib.request.urlopen(link)).convert("RGB")
-    pred, img, sec = get_prediction(image)
+    pred, img, sec, output = get_prediction(image)
     st.session_state.predictions.append((pred.lower(), img))
     for pred, img in st.session_state.predictions:
-        st.write(f'''Тип Вашего кофейного зерна: _{pred}_  
+        st.write(f'''Тип Вашего кофейного зерна: _{pred}, {output}_  
 Время выполнения предсказания: __{sec:.4f} секунды__''')
         st.image(img)
 
