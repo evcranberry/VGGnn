@@ -1,5 +1,6 @@
 name: myenv
 channels:
+  - defaults
   - conda-forge
 dependencies:
   - altair=5.5.0=pyhd8ed1ab_1
